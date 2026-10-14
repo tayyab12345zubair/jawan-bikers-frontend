@@ -1,13 +1,24 @@
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    background-color: #111111; /* Dark Biker Theme Background */
+    color: #ffffff;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Ensure all pages take full height and match the dark theme */
+#root {
+    min-height: 100vh;
+    background-color: #111111;
+}
+
+input, textarea, select {
+    background-color: #222 !important;
+    color: #fff !important;
+    border: 1px solid #444 !important;
+    border-radius: 6px;
+}
+
+input:focus, textarea:focus {
+    border-color: #ffcc00 !important;
+    outline: none;
 }
