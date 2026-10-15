@@ -37,17 +37,27 @@ export default function Admin() {
         }
     }, []);
 
-    const fetchAdminData = () => {
-        axios.get('https://jawan-bikers-backend.vercel.app/api/upcoming-rides').then(res1 => {
-            axios.get('https://jawan-bikers-backend.vercel.app/api/previous-tours').then(res2 => setAllRides([...res1.data, ...res2.data]));
-        });
-        axios.get('https://jawan-bikers-backend.vercel.app/api/admin/members').then(res => {
-            setMembersData(res.data.members || []);
-            setVaultData(res.data.vaultDocuments || {});
-        });
-        axios.get('https://jawan-bikers-backend.vercel.app/api/gallery').then(res => setGalleryData(res.data));
-        axios.get('https://jawan-bikers-backend.vercel.app/api/team').then(res => setTeamData(res.data));
-        axios.get('https://jawan-bikers-backend.vercel.app/api/blogs').then(res => setBlogsData(res.data));
+    const fetchAdminData = async () => {
+        try {
+            const res1 = await axios.get('https://jawan-bikers-backend.vercel.app/api/upcoming-rides').catch(() => ({ data: [] }));
+            const res2 = await axios.get('https://jawan-bikers-backend.vercel.app/api/previous-tours').catch(() => ({ data: [] }));
+            setAllRides([...(res1.data || []), ...(res2.data || [])]);
+
+            const membersRes = await axios.get('https://jawan-bikers-backend.vercel.app/api/admin/members').catch(() => ({ data: { members: [], vaultDocuments: {} } }));
+            setMembersData(membersRes.data.members || []);
+            setVaultData(membersRes.data.vaultDocuments || {});
+
+            const galleryRes = await axios.get('https://jawan-bikers-backend.vercel.app/api/gallery').catch(() => ({ data: [] }));
+            setGalleryData(galleryRes.data || []);
+
+            const teamRes = await axios.get('https://jawan-bikers-backend.vercel.app/api/team').catch(() => ({ data: [] }));
+            setTeamData(teamRes.data || []);
+
+            const blogsRes = await axios.get('https://jawan-bikers-backend.vercel.app/api/blogs').catch(() => ({ data: [] }));
+            setBlogsData(blogsRes.data || []);
+        } catch (err) {
+            console.log("Using safe fallback data to prevent crash");
+        }
     };
 
    const handleAdminLogin = (e) => {
