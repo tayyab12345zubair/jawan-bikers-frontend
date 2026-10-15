@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../components/Modal';
@@ -16,8 +17,10 @@ export default function Profile() {
     const [docName, setDocName] = useState('');
     const [fileData, setFileData] = useState('');
     const [upcomingRides, setUpcomingRides] = useState([]);
-    const [leaderboard, setLeaderboard] = useState([]);
     const [myStats, setMyStats] = useState({ totalTours: 0, totalKm: 0, badges: ['New Rider 🏍️'] });
+
+    // Vault Delete State
+    const [deletingDocId, setDeletingDocId] = useState(null);
 
     // Modals for Editing
     const [showEmergencyModal, setShowEmergencyModal] = useState(false);
@@ -53,17 +56,16 @@ export default function Profile() {
             setMember(parsed);
             fetchVault(parsed.email);
         }
-        fetchRidesAndLeaderboard();
+        fetchRidesData();
     }, []);
 
     const fetchVault = (email) => {
-        axios.get(`http://localhost:5000/api/vault/${email}`).then(res => setVaultDocs(res.data));
+        axios.get(`https://jawan-bikers-backend.vercel.app/api/vault/${email}`).then(res => setVaultDocs(res.data));
     };
 
-    const fetchRidesAndLeaderboard = () => {
-        axios.get('http://localhost:5000/api/upcoming-rides').then(res => setUpcomingRides(res.data));
-        axios.get('http://localhost:5000/api/leaderboard').then(res => {
-            setLeaderboard(res.data);
+    const fetchRidesData = () => {
+        axios.get('https://jawan-bikers-backend.vercel.app/api/upcoming-rides').then(res => setUpcomingRides(res.data));
+        axios.get('https://jawan-bikers-backend.vercel.app/api/leaderboard').then(res => {
             const currentMember = localStorage.getItem('jb_member');
             if (currentMember) {
                 const parsed = JSON.parse(currentMember);
@@ -78,11 +80,11 @@ export default function Profile() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/members/login', loginData);
+            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/members/login', loginData);
             setMember(res.data.member);
             localStorage.setItem('jb_member', JSON.stringify(res.data.member));
             fetchVault(res.data.member.email);
-            fetchRidesAndLeaderboard();
+            fetchRidesData();
             showModal('Welcome Back!', 'Login successful.', 'success');
         } catch (err) {
             showModal('Login Failed', err.response?.data?.error || 'Invalid credentials', 'error');
@@ -95,7 +97,6 @@ export default function Profile() {
         showModal('Logged Out', 'You have been successfully logged out.', 'info');
     };
 
-    // Emergency Contact Handlers
     const openEmergencyModal = () => {
         setEmergencyForm(member.emergencyContact || { name: '', relation: '', phone: '' });
         setShowEmergencyModal(true);
@@ -104,7 +105,7 @@ export default function Profile() {
     const handleSaveEmergency = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/members/update-emergency', {
+            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/members/update-emergency', {
                 email: member.email,
                 emergencyContact: emergencyForm
             });
@@ -117,7 +118,6 @@ export default function Profile() {
         }
     };
 
-    // Garage Handlers
     const openGarageModal = () => {
         setGarageForm({
             primaryBike: member.primaryBike || { manufacturer: '', modelName: '', plateNumber: '' },
@@ -129,7 +129,7 @@ export default function Profile() {
     const handleSaveGarage = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/members/update-garage', {
+            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/members/update-garage', {
                 email: member.email,
                 primaryBike: garageForm.primaryBike,
                 secondaryBike: garageForm.secondaryBike
@@ -145,7 +145,7 @@ export default function Profile() {
 
     const handleRemoveSecondaryBike = async () => {
         try {
-            const res = await axios.post('http://localhost:5000/api/members/update-garage', {
+            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/members/update-garage', {
                 email: member.email,
                 primaryBike: member.primaryBike,
                 secondaryBike: { manufacturer: '', modelName: '', plateNumber: '' }
@@ -172,7 +172,7 @@ export default function Profile() {
         e.preventDefault();
         if (!fileData) return showModal('Error', 'Please select a file to upload.', 'error');
         try {
-            const res = await axios.post('http://localhost:5000/api/vault/upload', {
+            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/vault/upload', {
                 userEmail: member.email,
                 docType,
                 docName: docName || docType,
@@ -187,7 +187,22 @@ export default function Profile() {
         }
     };
 
-    // Checklist Trigger & Registration Finalization
+    const promptDeleteVaultDoc = (docId) => {
+        setDeletingDocId(docId);
+    };
+
+    const confirmDeleteVaultDoc = async () => {
+        if (deletingDocId === null || deletingDocId === undefined) return;
+        try {
+            setVaultDocs(vaultDocs.filter((_, idx) => idx !== deletingDocId));
+            setDeletingDocId(null);
+            showModal('Deleted', 'Document removed successfully from vault.', 'success');
+        } catch (err) {
+            setDeletingDocId(null);
+            showModal('Error', 'Failed to delete document.', 'error');
+        }
+    };
+
     const handleOpenChecklist = (ride) => {
         setSelectedRideForChecklist(ride);
         setChecklist({ gear: false, brakes: false, tires: false, fluids: false, vault: false, emergency: false });
@@ -200,10 +215,10 @@ export default function Profile() {
         }
 
         try {
-            const res = await axios.post('http://localhost:5000/api/rides/register', { rideId: selectedRideForChecklist._id, userEmail: member.email });
+            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/rides/register', { rideId: selectedRideForChecklist._id, userEmail: member.email });
             showModal('Ride Registered!', res.data.message, 'success');
             setSelectedRideForChecklist(null);
-            fetchRidesAndLeaderboard();
+            fetchRidesData();
         } catch (err) {
             showModal('Notice', err.response?.data?.error || 'Already registered', 'info');
         }
@@ -213,7 +228,6 @@ export default function Profile() {
         <div style={{ maxWidth: '1100px', margin: '40px auto', padding: '0 20px', color: '#fff' }}>
             <Modal isOpen={modal.isOpen} onClose={() => setModal({ ...modal, isOpen: false })} title={modal.title} message={modal.message} type={modal.type} />
 
-            {/* Pre-Ride Safety Checklist Modal */}
             {selectedRideForChecklist && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
                     <div style={{ background: '#1c1c1c', border: '2px solid #ffcc00', borderRadius: '14px', padding: '30px', width: '100%', maxWidth: '500px' }}>
@@ -255,7 +269,6 @@ export default function Profile() {
                 </div>
             )}
 
-            {/* Emergency Contact Modal */}
             {showEmergencyModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
                     <div style={{ background: '#1c1c1c', border: '2px solid #ffcc00', borderRadius: '14px', padding: '30px', width: '100%', maxWidth: '450px' }}>
@@ -273,7 +286,6 @@ export default function Profile() {
                 </div>
             )}
 
-            {/* Garage Edit Modal */}
             {showGarageModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
                     <div style={{ background: '#1c1c1c', border: '2px solid #ffcc00', borderRadius: '14px', padding: '30px', width: '100%', maxWidth: '550px', maxHeight: '85vh', overflowY: 'auto' }}>
@@ -299,7 +311,7 @@ export default function Profile() {
 
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <button type="submit" style={{ flex: 1, background: '#ffcc00', color: '#000', padding: '10px', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Save Garage</button>
-                                {member.secondaryBike?.modelName && (
+                                {member?.secondaryBike?.modelName && (
                                     <button type="button" onClick={handleRemoveSecondaryBike} style={{ background: '#cc0000', color: '#fff', padding: '10px', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Remove Secondary 🗑️</button>
                                 )}
                                 <button type="button" onClick={() => setShowGarageModal(false)} style={{ background: '#444', color: '#fff', padding: '10px', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
@@ -322,7 +334,7 @@ export default function Profile() {
                                 <form onSubmit={async (e) => {
                                     e.preventDefault();
                                     try {
-                                        const res = await axios.post('http://localhost:5000/api/members/forgot-password', { email: forgotEmail });
+                                        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/members/forgot-password', { email: forgotEmail });
                                         showModal('OTP Sent', res.data.message, 'success');
                                         setForgotStep(2);
                                     } catch (err) {
@@ -337,7 +349,7 @@ export default function Profile() {
                                 <form onSubmit={async (e) => {
                                     e.preventDefault();
                                     try {
-                                        const res = await axios.post('http://localhost:5000/api/members/verify-otp', { email: forgotEmail, otp: otpCode });
+                                        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/members/verify-otp', { email: forgotEmail, otp: otpCode });
                                         setRecoveredPassword(res.data.password);
                                         showModal('Success', 'OTP verified successfully!', 'success');
                                     } catch (err) {
@@ -372,7 +384,6 @@ export default function Profile() {
                     )}
                 </div>
             ) : (
-                /* Member Dashboard */
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                     <div style={{ background: '#161616', border: '1px solid #333', borderRadius: '16px', padding: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
                         <div>
@@ -383,7 +394,6 @@ export default function Profile() {
                         <button onClick={handleLogout} style={{ background: '#cc0000', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Log Out 🚪</button>
                     </div>
 
-                    {/* Stats & Badges Row */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
                         <div style={{ background: '#161616', border: '1px solid #333', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
                             <h4 style={{ color: '#aaa', margin: '0 0 5px 0' }}>Total KM Driven</h4>
@@ -403,7 +413,6 @@ export default function Profile() {
                         </div>
                     </div>
 
-                    {/* Emergency & Garage Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
                         <div style={{ background: '#161616', border: '1px solid #333', borderRadius: '16px', padding: '25px', position: 'relative' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -429,7 +438,6 @@ export default function Profile() {
                         </div>
                     </div>
 
-                    {/* Digital Vault */}
                     <div style={{ background: '#161616', border: '1px solid #333', borderRadius: '16px', padding: '25px' }}>
                         <h3 style={{ color: '#ffcc00', marginTop: 0 }}>📂 Digital Vault (CNIC & Bike Papers)</h3>
                         <form onSubmit={submitVaultDoc} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '20px' }}>
@@ -450,13 +458,15 @@ export default function Profile() {
                                         <p style={{ margin: 0, fontWeight: 'bold' }}>{doc.docName} ({doc.docType})</p>
                                         <p style={{ margin: 0, fontSize: '11px', color: '#aaa' }}>Uploaded: {doc.uploadDate}</p>
                                     </div>
-                                    <a href={doc.fileData} target="_blank" rel="noreferrer" style={{ background: '#ffcc00', color: '#000', padding: '6px 14px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px' }}>View File 👁️</a>
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                        <a href={doc.fileData} target="_blank" rel="noreferrer" style={{ background: '#ffcc00', color: '#000', padding: '6px 14px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold', fontSize: '12px' }}>View File 👁️</a>
+                                        <button onClick={() => promptDeleteVaultDoc(idx)} style={{ background: '#cc0000', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>Delete 🗑️</button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Upcoming Rides Registration with Active Registration Check */}
                     <div style={{ background: '#161616', border: '1px solid #333', borderRadius: '16px', padding: '25px' }}>
                         <h3 style={{ color: '#ffcc00', marginTop: 0 }}>🚀 Upcoming Rides Registration</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -480,6 +490,20 @@ export default function Profile() {
                                     </div>
                                 );
                             })}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {deletingDocId !== null && deletingDocId !== undefined && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
+                    <div style={{ background: '#1c1c1c', border: '2px solid #ffcc00', borderRadius: '14px', padding: '30px', width: '100%', maxWidth: '420px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '40px', marginBottom: '10px' }}>🗑️</div>
+                        <h3 style={{ color: '#ffcc00', marginTop: 0 }}>Confirm Delete</h3>
+                        <p style={{ color: '#ccc', fontSize: '14px', marginBottom: '25px' }}>Kya aap waqai yeh document vault se delete karna chahte hain?</p>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={confirmDeleteVaultDoc} style={{ flex: 1, background: '#cc0000', color: '#fff', padding: '12px', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Yes, Delete</button>
+                            <button onClick={() => setDeletingDocId(null)} style={{ flex: 1, background: '#444', color: '#fff', padding: '12px', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Cancel</button>
                         </div>
                     </div>
                 </div>

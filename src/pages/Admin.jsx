@@ -30,22 +30,22 @@ export default function Admin() {
     };
 
     const fetchAdminData = () => {
-        axios.get('http://localhost:5000/api/upcoming-rides').then(res1 => {
-            axios.get('http://localhost:5000/api/previous-tours').then(res2 => setAllRides([...res1.data, ...res2.data]));
+        axios.get('https://jawan-bikers-backend.vercel.app/api/upcoming-rides').then(res1 => {
+            axios.get('https://jawan-bikers-backend.vercel.app/api/previous-tours').then(res2 => setAllRides([...res1.data, ...res2.data]));
         });
-        axios.get('http://localhost:5000/api/admin/members').then(res => {
+        axios.get('https://jawan-bikers-backend.vercel.app/api/admin/members').then(res => {
             setMembersData(res.data.members || []);
             setVaultData(res.data.vaultDocuments || {});
         });
-        axios.get('http://localhost:5000/api/gallery').then(res => setGalleryData(res.data));
-        axios.get('http://localhost:5000/api/team').then(res => setTeamData(res.data));
-        axios.get('http://localhost:5000/api/blogs').then(res => setBlogsData(res.data));
+        axios.get('https://jawan-bikers-backend.vercel.app/api/gallery').then(res => setGalleryData(res.data));
+        axios.get('https://jawan-bikers-backend.vercel.app/api/team').then(res => setTeamData(res.data));
+        axios.get('https://jawan-bikers-backend.vercel.app/api/blogs').then(res => setBlogsData(res.data));
     };
 
     const handleAdminLogin = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/admin/login', adminCreds);
+            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/login', adminCreds);
             if (res.data.success) {
                 setIsAdmin(true);
                 showModal('Admin Access Granted', 'Welcome to Jawan Bikers Admin Portal!', 'success');
@@ -59,7 +59,7 @@ export default function Admin() {
     const handleCreateRide = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/admin/rides/create', newRide);
+            await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/rides/create', newRide);
             showModal('Success', 'Upcoming ride created with Meetup Location & KM!', 'success');
             setNewRide({ title: '', destination: '', meetupLocation: '', date: '', description: '', distanceKm: '', gpxRouteUrl: '' });
             fetchAdminData();
@@ -67,21 +67,21 @@ export default function Admin() {
     };
 
     const handleToggleRideStatus = async (rideId) => {
-        const res = await axios.post('http://localhost:5000/api/admin/rides/toggle-status', { rideId });
+        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/rides/toggle-status', { rideId });
         showModal('Updated', res.data.message, 'success');
         fetchAdminData();
     };
 
     const handleDeleteRide = async (rideId) => {
         if (!window.confirm('Delete this ride permanently?')) return;
-        const res = await axios.post('http://localhost:5000/api/admin/rides/delete', { rideId });
+        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/rides/delete', { rideId });
         showModal('Deleted', res.data.message, 'success');
         fetchAdminData();
     };
 
     const handleDeleteMember = async (email) => {
         if (!window.confirm(`Delete member ${email}?`)) return;
-        const res = await axios.post('http://localhost:5000/api/admin/members/delete', { email });
+        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/members/delete', { email });
         setMembersData(res.data.members || []);
         setVaultData(res.data.vaultDocuments || {});
         showModal('Deleted', 'Member removed successfully.', 'success');
@@ -89,28 +89,28 @@ export default function Admin() {
 
     const handleAddGallery = async (e) => {
         e.preventDefault();
-        const res = await axios.post('http://localhost:5000/api/admin/gallery/add', newGallery);
+        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/gallery/add', newGallery);
         setGalleryData(res.data.gallery || []);
         setNewGallery({ title: '', imageUrl: '' });
         showModal('Success', 'Photo added to gallery.', 'success');
     };
 
     const handleDeleteGallery = async (id) => {
-        const res = await axios.post('http://localhost:5000/api/admin/gallery/delete', { id });
+        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/gallery/delete', { id });
         setGalleryData(res.data.gallery || []);
         showModal('Deleted', 'Photo removed.', 'success');
     };
 
     const handleAddTeam = async (e) => {
         e.preventDefault();
-        const res = await axios.post('http://localhost:5000/api/admin/team/add', newTeam);
+        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/team/add', newTeam);
         setTeamData(res.data.team || []);
         setNewTeam({ name: '', role: '', description: '', pictureUrl: '' });
         showModal('Success', 'Team member added.', 'success');
     };
 
     const handleDeleteTeam = async (id) => {
-        const res = await axios.post('http://localhost:5000/api/admin/team/delete', { id });
+        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/team/delete', { id });
         setTeamData(res.data.team || []);
         showModal('Deleted', 'Team member removed.', 'success');
     };
@@ -118,12 +118,12 @@ export default function Admin() {
     const handleSaveBlog = async (e) => {
         e.preventDefault();
         if (editingBlogId) {
-            const res = await axios.post('http://localhost:5000/api/admin/blogs/update', { id: editingBlogId, ...newBlog });
+            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/blogs/update', { id: editingBlogId, ...newBlog });
             setBlogsData(res.data.blogs || []);
             setEditingBlogId(null);
             showModal('Updated', 'Blog updated successfully.', 'success');
         } else {
-            const res = await axios.post('http://localhost:5000/api/admin/blogs/create', newBlog);
+            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/blogs/create', newBlog);
             setBlogsData(res.data.blogs || []);
             showModal('Published', 'New blog published.', 'success');
         }
@@ -136,7 +136,7 @@ export default function Admin() {
     };
 
     const handleDeleteBlog = async (id) => {
-        const res = await axios.post('http://localhost:5000/api/admin/blogs/delete', { id });
+        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/blogs/delete', { id });
         setBlogsData(res.data.blogs || []);
         showModal('Deleted', 'Blog removed.', 'success');
     };

@@ -7,10 +7,10 @@ export default function Blogs() {
     const [selectedBlog, setSelectedBlog] = useState(null);
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/blogs')
-            .then(res => setBlogs(res.data))
-            .catch(err => console.log(err));
-    }, []);
+  axios.get('https://jawan-bikers-backend.vercel.app/api/blogs')
+    .then(res => setBlogs(res.data))
+    .catch(err => console.log(err));
+}, []);
 
     const filteredBlogs = blogs.filter(blog => 
         blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

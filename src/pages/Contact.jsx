@@ -12,7 +12,7 @@ export default function Contact() {
     });
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/contact')
+        axios.get('https://jawan-bikers-backend.vercel.app/api/contact')
             .then(res => {
                 if (res.data) {
                     setContact(prev => ({

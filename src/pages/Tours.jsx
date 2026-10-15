@@ -7,11 +7,11 @@ export default function Tours() {
     const [activeMapUrl, setActiveMapUrl] = useState(null);
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/upcoming-rides')
+        axios.get('https://jawan-bikers-backend.vercel.app/api/upcoming-rides')
             .then(res => setUpcomingRides(res.data))
             .catch(err => console.log(err));
 
-        axios.get('http://localhost:5000/api/previous-tours')
+        axios.get('https://jawan-bikers-backend.vercel.app/api/previous-tours')
             .then(res => setPreviousTours(res.data))
             .catch(err => console.log(err));
     }, []);

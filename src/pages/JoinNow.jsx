@@ -59,7 +59,7 @@ export default function JoinNow() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/members/register', formData);
+            await axios.post('https://jawan-bikers-backend.vercel.app/api/members/register', formData);
             setModal({
                 isOpen: true,
                 title: 'Welcome To The Tribe!',

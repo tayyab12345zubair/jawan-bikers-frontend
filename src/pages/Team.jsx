@@ -5,7 +5,7 @@ export default function Team() {
     const [team, setTeam] = useState([]);
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/team')
+        axios.get('https://jawan-bikers-backend.vercel.app/api/team')
             .then(res => setTeam(res.data))
             .catch(err => console.log(err));
     }, []);
