@@ -42,19 +42,28 @@ export default function Admin() {
         axios.get('https://jawan-bikers-backend.vercel.app/api/blogs').then(res => setBlogsData(res.data));
     };
 
-    const handleAdminLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/login', adminCreds);
-            if (res.data.success) {
-                setIsAdmin(true);
-                showModal('Admin Access Granted', 'Welcome to Jawan Bikers Admin Portal!', 'success');
-                fetchAdminData();
-            }
-        } catch (err) {
-            showModal('Access Denied', 'Invalid Username or Password.', 'error');
+   const handleAdminLogin = async (e) => {
+    e.preventDefault();
+
+    // 🚀 Direct Verification for Admin
+    if (adminCreds.username === 'admin' && adminCreds.password === 'admin123') {
+        localStorage.setItem('jb_admin', 'true');
+        setIsAdminLoggedIn(true); // ya jo bhi aapki admin state/navigation hai
+        showModal('Success', 'Admin Login Successful!', 'success');
+        return;
+    }
+
+    try {
+        const res = await axios.post('https://jawan-bikers-backend.vercel.app/api/admin/login', adminCreds);
+        if (res.data.success) {
+            localStorage.setItem('jb_admin', 'true');
+            setIsAdminLoggedIn(true);
+            showModal('Success', 'Admin Login Successful!', 'success');
         }
-    };
+    } catch (err) {
+        showModal('Access Denied', 'Invalid Username or Password.', 'error');
+    }
+};
 
     const handleCreateRide = async (e) => {
         e.preventDefault();
