@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from '../components/Modal';
 
@@ -29,6 +29,14 @@ export default function Admin() {
         setModal({ isOpen: true, title, message, type });
     };
 
+    useEffect(() => {
+        const savedAdmin = localStorage.getItem('jb_admin');
+        if (savedAdmin === 'true') {
+            setIsAdmin(true);
+            fetchAdminData();
+        }
+    }, []);
+
     const fetchAdminData = () => {
         axios.get('https://jawan-bikers-backend.vercel.app/api/upcoming-rides').then(res1 => {
             axios.get('https://jawan-bikers-backend.vercel.app/api/previous-tours').then(res2 => setAllRides([...res1.data, ...res2.data]));
@@ -42,17 +50,17 @@ export default function Admin() {
         axios.get('https://jawan-bikers-backend.vercel.app/api/blogs').then(res => setBlogsData(res.data));
     };
 
-  const handleAdminLogin = (e) => {
-    e.preventDefault();
+    const handleAdminLogin = (e) => {
+        e.preventDefault();
 
-    if (adminCreds.username === 'admin' && adminCreds.password === 'admin123') {
-        localStorage.setItem('jb_admin', 'true');
-        alert('Admin Login Successful!');
-        window.location.href = '/admin-dashboard'; // Direct redirect
-    } else {
-        alert('Invalid Username or Password.');
-    }
-};
+        if (adminCreds.username === 'admin' && adminCreds.password === 'admin123') {
+            localStorage.setItem('jb_admin', 'true');
+            setIsAdmin(true);
+            fetchAdminData();
+        } else {
+            alert('Invalid Username or Password.');
+        }
+    };
 
     const handleCreateRide = async (e) => {
         e.preventDefault();
@@ -143,7 +151,6 @@ export default function Admin() {
         <div style={{ color: '#fff', paddingBottom: '70px' }}>
             <Modal isOpen={modal.isOpen} onClose={() => setModal({ ...modal, isOpen: false })} title={modal.title} message={modal.message} type={modal.type} />
 
-            {/* Member Inspection Modal */}
             {inspectingMember && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
                     <div style={{ background: '#1c1c1c', border: '2px solid #ffcc00', borderRadius: '14px', padding: '30px', width: '100%', maxWidth: '650px', maxHeight: '85vh', overflowY: 'auto' }}>
@@ -218,7 +225,7 @@ export default function Admin() {
                             <button onClick={() => setActiveTab('team')} style={{ padding: '12px', textAlign: 'left', background: activeTab === 'team' ? '#ffcc00' : 'transparent', color: activeTab === 'team' ? '#000' : '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>👥 Team Members</button>
                             <button onClick={() => setActiveTab('blogs')} style={{ padding: '12px', textAlign: 'left', background: activeTab === 'blogs' ? '#ffcc00' : 'transparent', color: activeTab === 'blogs' ? '#000' : '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>✍️ Biker Blogs</button>
                             <button onClick={() => setActiveTab('members')} style={{ padding: '12px', textAlign: 'left', background: activeTab === 'members' ? '#ffcc00' : 'transparent', color: activeTab === 'members' ? '#000' : '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>📋 Registered Members</button>
-                            <button onClick={() => setIsAdmin(false)} style={{ marginTop: '20px', padding: '12px', textAlign: 'left', background: '#cc0000', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>🚪 Exit Admin</button>
+                            <button onClick={() => { localStorage.removeItem('jb_admin'); setIsAdmin(false); }} style={{ marginTop: '20px', padding: '12px', textAlign: 'left', background: '#cc0000', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>🚪 Exit Admin</button>
                         </div>
                     </div>
 
